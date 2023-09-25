@@ -26,6 +26,25 @@ connection.authenticate().then(() => {
 //listando os games
 app.get("/games", autenticar(secret), (req, res) => {
 
+    var HATEOAS = [
+        {
+            href: "http://localhost/5000/game/0",
+            method: "GET",
+            rel: "get_game"
+        },
+        {
+            ref: "http://localhost/5000/game/0",
+            method: "DELETE",
+            rel: "delete_game"
+        },
+        {   
+            ref: "http://localhost/5000/auth",
+            method: "POST",
+            rel: "login"
+        }
+    ]
+
+
     //para acessar a variável do middleware autenticar
     console.log(req.logado);
 
@@ -36,7 +55,10 @@ app.get("/games", autenticar(secret), (req, res) => {
             ['id', 'ASC']
         ]
     }).then(games => {
-        res.json(games);
+        res.json({
+            games: games,
+            links: HATEOAS
+        });
     });
 
 });
@@ -50,6 +72,25 @@ app.get("/game/:id", autenticar(secret), (req, res) => {
 
         var id = parseInt(req.params.id);
 
+        var HATEOAS = [
+            {
+                ref: "http://localhost/5000/game/"+id,
+                method: "DELETE",
+                rel: "delete_game"
+            },
+            {
+                ref: "http://localhost/5000/game/"+id,
+                method: "PUT",
+                rel: "edit_game"
+            },
+            {
+                ref: "http://localhost/5000/games",
+                method: "GET",
+                rel: "delete_games"
+            },
+        ]
+
+
         Games.findOne({
             where: {
                 id: id
@@ -59,7 +100,10 @@ app.get("/game/:id", autenticar(secret), (req, res) => {
             if(game != undefined){
 
                 res.statusCode = 200;
-                res.json(game);
+                res.json({
+                    game: game,
+                    links: HATEOAS
+                });
 
             /*
             res.json({
